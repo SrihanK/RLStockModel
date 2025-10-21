@@ -71,11 +71,12 @@ An initial in-sample run on TSLA data covering 2024 produced an apparent +60% re
 
 In Phase 2, we applied our full “101-alpha” pipeline to a multi‐asset context by training and evaluating a PPO agent on ~70 alphas computed on ~170 SP500 stocks. We began by loading a CSV of SP500 daily OHLCV data from Kaggle—parsing the Date column into a datetime index, standardizing column names to Open, High, Low, Close, and Volume, converting “M”/“K” volume suffixes into numeric floats, sorting by date, and forward‐filling any missing values. We then computed next‐day returns as simple percentage changes on Close (pct_change().fillna(0.0)) and stored them in the environment for reward calculation. Using our FormulaicAlphas class, we vectorized the computation of every alpha### method via rolling sums, moving averages, standard deviations, sliding correlations and covariances, rank transforms, linear decays, deltas, delays, and more. Python’s inspect module dynamically invoked each alpha, filtering out those that errored, and we utilized a cross sectional percentile rank scaling method to utilize only meaningful alpha/stock pairs. We then replaced all NaNs and infinites with zeros, standardized each column to zero mean and unit variance, and cast the result to a NumPy float32 matrix. In our custom TradingEnv, at each time step the agent observes αt−1αt−1​, outputs a raw weight vector wt[-1,1]Mwhich is clipped and normalized so that i|wi| =1, and computes a scalar signal xt=wtat-1. Contrary to phase 1, the weight vector output weights for each stock, which would combine with alpha indicators to produce trade signals for each stock, allocating parts of the portfolio to different trades. The daily reward equals the product of the agent’s current balance, this signal, and total next‐day return; no additional drawdown or volatility penalties are applied in this phase. We trained Stable-Baselines3’s PPO for 100,000 timesteps on SPY data from 2020–2023 and then tested the saved model on 2024. The resulting equity curve remained essentially flat through the year, with an annualized Sharpe ratio near zero and drawdowns comparable to a random‐weight baseline.
 
-
+![](images/image17.png)
 
 
 These results prompted an Information Coefficient (IC) and Hit-rate analysis, which revealed that almost all of the alphas by themselves had little predictive value, and had hit rates that were equivalent or worse than random guessing.
 
+![](images/image16.png)
 
 ## Phase 3: Information-Weighted Mega-Alpha
 
